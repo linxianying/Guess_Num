@@ -17,7 +17,7 @@ int lower=0;
 void listReset(int * array){
     gameover = 0;
 	/* random int between 1 and 100 */
-    r = rand() % 101;
+    r = rand() % 100;
     r++;
     attempt = 0;
     upper=100;
