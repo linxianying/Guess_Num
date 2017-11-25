@@ -12,7 +12,7 @@ int arr;
 int gameover;
 int r;
 int upper=100;
-int lower=1;
+int lower=0;
 
 void listReset(int * array){
     gameover = 0;
@@ -21,7 +21,7 @@ void listReset(int * array){
     r++;
     attempt = 0;
     upper=100;
-    lower=1;
+    lower=0;
 	int i;
 	int length = 50;
 	arr = * array;
@@ -75,18 +75,6 @@ void compareInput(){
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
