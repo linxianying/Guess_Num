@@ -19,13 +19,13 @@ int main()
     return 0;
 }
 
-int inputValue;
-int attempt;
-int arr;
+int inputValue;//输入的数值
+int attempt;//尝试次数
+int arr;//array
 int gameover;
-int r;
-int upper=100;
-int lower=0;
+int r;//随机数
+int upper=100;//上限
+int lower=0;//下限
 int menuScreen = 0, 
     gameScreen = 1, 
     winScreen = 2,
@@ -33,32 +33,37 @@ int menuScreen = 0,
     guessScreen = 4;
     
 int currentScreen;    
-    
+ 
+//游戏初始化
  void gameMain(void){   
-    int currentScreen = 0;
-
+	 
+    currentScreen = 0;
     listReset();
+    updateScreen();	 
+	 
     
 }
    
+//更新画面
 void updateScreen(){
     if(currentScreen == menuScreen){
-        display_string(0,"\t");
+        //开始画面。
+	display_string(0,"\t");
         display_string(1,"\tTo Start ");
         display_string(2,"\tPress Any Key");
         display_string(3,"\t");
     }else 
-    
     if(currentScreen == winScreen){   
-        display_string(0,"\t");
+        //游戏结束画面。
+	display_string(0,"\t");
         display_string(1,"\tRight Answer!");
         display_string(2,"\tCongratulation!");
         display_string(3,"\tYou Win.");
     }else 
     if(currentScreen == wrongScreen){
+	 //错误画面。显示上限和下限。   
         char buffer[20];
         itoa(upper,buffer,10);
-        
         string stringUpper = strcat("\tupper: ", buffer); 
         itoa(lower,buffer,10);
         string stringLower = strcat("\tlower: ", buffer); 
@@ -70,6 +75,7 @@ void updateScreen(){
 
     }else 
     if(currentScreen == guessScreen){
+	//猜数字界面。
         char buffer2[20];
         itoa(InputValue,buffer,10);
         display_string(0,"\tguess a number");
@@ -86,6 +92,8 @@ void updateScreen(){
     
 
 void listReset(){
+    //读作init,初始化数据。
+	currentScreen = 0;
     gameover = 0;
 	/* random int between 1 and 100 */
     r = rand() % 101;
@@ -96,6 +104,7 @@ void listReset(){
 }
 
 void updateLeastPressed(){
+    //最晚摁下的那个键为1，其他的键为0，可以用forloop来写	
     //Least pressed button = 1, others = 0
 }
 
@@ -103,15 +112,18 @@ void getBntC(int n){
     int btns = getbtns();
     int swt  = getsw();
     updateLeastPressed();
-    
+    //更新键位数据。
+	
+	
     if(currentScreen == menuScreen){
         if(btns!=0){
             currentScreen = guessScreen;
             updateScreen();
+		//开始画面 随机键开始游戏
         }else
         
     if(currentScreen == guessScreen){
-        
+        //inputValue更改
     if( btns = 4 ){
       inputValue += 1;
    }else
@@ -134,14 +146,16 @@ void getBntC(int n){
    if(currentScreen == guessScreen){
        if(swt=1){
      getSwtC(swt);}
+	   //确认数据。
    }else
    
    if(currentScreen == wrongScreen){
        if(swt!=0){
+	    //继续游戏
             currentScreen = guessScreen;
             updateScreen();
         }else
-           
+           //继续游戏
            if(currentScreen == winScreen){
        if(swt!=0){
             currentScreen = menuScreen;
@@ -156,6 +170,8 @@ void getBntC(int n){
 }
 
 void getSwtC(int n){
+	
+    //swt1进行比较，swt2重置数据。
     if( n = 1 ){
        compareInput();
        attempt ++;
@@ -166,6 +182,7 @@ void getSwtC(int n){
     
 }
 
+//比较	    
 void compareInput(){
     if (inputValue = r){
         currentScreen = winScreen;
