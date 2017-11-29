@@ -27,6 +27,7 @@ int upper=100;//上限
 int lower=0;//下限
 int timeout=10;
 int currentRank=0;
+int[] rank = new int[10] {11, 11, 11, 11, 11, 11, 11, 11, 11, 11}; //only tell when the player is top 10
 const unsigned int menuScreen = 0, 
     		   gameScreen = 1, 
     		   winScreen = 2,
@@ -112,7 +113,26 @@ void updateScreen(){
     display_update();
 }
     
-    
+void computeRank(){
+    if(attempt<arr[9]){
+    	for(int i=9;i>=1;i--){
+	    if(attempt<arr[i]&&attempt>arr[i-1]){
+	        currentRank = i + 1;
+		for(int j=9;j>=i;j--){
+		    arr[j] = arr[j-1];
+		}
+		arr[i] = attempt;
+	    }
+	    if(attempt<arr[0]){
+	        currentRank = 1;
+		for(int j=9;j>=1;j--){
+		    arr[j] = arr[j-1];
+		}
+		arr[0] = attempt;
+	    }
+	}
+    }
+}
 
 void listReset(){
     //读作init,初始化数据。
