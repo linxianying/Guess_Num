@@ -25,11 +25,15 @@ int gameover;
 int r;//随机数
 int upper=100;//上限
 int lower=0;//下限
+int timeout=10;
+int currentRank=0;
 const unsigned int menuScreen = 0, 
     		   gameScreen = 1, 
     		   winScreen = 2,
     		   wrongScreen = 3,
-    		   guessScreen = 4;
+    		   guessScreen = 4,
+		   timeOutScreen =5,
+		   rankScreen=6;
     
 int currentScreen;    
  
@@ -83,8 +87,28 @@ void updateScreen(){
         display_string(2,stringInput);
         display_string(3,"\t");
     
-    }
-
+    }else
+    if(currentScreen == timeOutScreen){
+	//时间超时界面。
+        char buffer2[20];
+        itoa(InputValue,buffer,10);
+        display_string(0,"\tTime Out!");
+        string stringInput = strcat("\t",buffer); 
+        display_string(1,"\tYour guess: ");
+        display_string(2,"none";
+        display_string(3,"\t");
+    }else  
+    if(currentScreen == rankScreen){
+	//排名。
+        char buffer2[20];
+        itoa(InputValue,buffer,10);
+        display_string(0,"\tRank List:");
+        string stringInput = strcat("\t",buffer); 
+        display_string(1,"\tYour rank: ");
+        display_string(2,currentRank);
+        display_string(3,"\t");
+    
+    }else
     display_update();
 }
     
