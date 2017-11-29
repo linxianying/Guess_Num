@@ -9,5 +9,5 @@ int getsw(void) {
 
 int getbtns(void) {
 
-	return (PORTD >> 5) & 0x0007;
+	return (PORTD >> 5) & 0x000f;
 }
