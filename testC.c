@@ -11,7 +11,6 @@ Write your code in this editor and press "Run" button to compile and execute it.
 #include <stdlib.h>
 #include <pic32mx.h>  /* Declarations of system-specific addresses etc */
 #include "mipslab.h"  /* Declatations for these labs */
-#include "sidefuncs.h"
 
 int main()
 {
@@ -26,11 +25,11 @@ int gameover;
 int r;//随机数
 int upper=100;//上限
 int lower=0;//下限
-int menuScreen = 0, 
-    gameScreen = 1, 
-    winScreen = 2,
-    wrongScreen = 3,
-    guessScreen = 4;
+const unsigned int menuScreen = 0, 
+    		   gameScreen = 1, 
+    		   winScreen = 2,
+    		   wrongScreen = 3,
+    		   guessScreen = 4;
     
 int currentScreen;    
  
