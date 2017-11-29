@@ -124,16 +124,16 @@ void getBntC(int n){
         
     if(currentScreen == guessScreen){
         //inputValue更改
-    if( btns = 4 ){
+    if(btns & 8){
       inputValue += 1;
    }else
-   if( btns = 3 ){
+   if( btns & 4 ){
        inputValue += 10;
    }else
-   if( btns = 2 ){
+   if( btns & 2 ){
        inputValue += 100;
    }else
-   if( btns = 1 ){
+   if( btns & 1 ){
        inputValue += 1000;
    }
    
