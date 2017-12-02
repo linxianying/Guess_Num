@@ -12,6 +12,32 @@ Write your code in this editor and press "Run" button to compile and execute it.
 #include <pic32mx.h>  /* Declarations of system-specific addresses etc */
 #include "mipslab.h"  /* Declatations for these labs */
 
+/* Interrupt Service Routine */
+void user_isr( void )
+{
+  return;
+}
+
+/* Lab-specific initialization goes here */
+void labinit( void )
+{
+  // initialize Port E so that bits 7 through 0 of Port E are set as outputs(0)
+  // Register TRISE has address 0xbf886100
+  volatile int * trise = (volatile int *) 0xbf886100;
+  // least 8 bits are 0
+  * trise = * trise & 0xff00;
+  //initialize port D so that bits 11 through 5 of Port D are set as inputs(1)
+  TRISD = TRISD & 0x0fe0;
+  timeoutcount = 0;
+  T2CON = 0x70;
+  T2CONSET = 0x8000;
+  PR2 = (80000000/256)/10;timeoutcount = 0;
+  T2CON = 0x70;
+  T2CONSET = 0x8000;
+  PR2 = (80000000/256)/10;
+  return;
+}
+
 int main()
 {
     printf("%d\n", rand() % 50);
