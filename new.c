@@ -50,6 +50,7 @@ unsigned int promo;
 unsigned int randomEvents;
 unsigned int police;
 unsigned int salary;
+unsigned int attempts = 0;
 
 int getRandom(int num){
 	int seed = findPrime(num)%73*35%66 + 51;
@@ -402,7 +403,7 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
             dataArray[UPDATE_SCREEN] = GuessInit;
         }
     } else if (currentScreen == GuessInit) {
-      if(money<0){dataArray[UPDATE_SCREEN] = AttemptsMax}else
+      if(money<0){dataArray[UPDATE_SCREEN] = AttemptsMax;}else
         if (buttonPressed(1, btns, lastBtns)) {
             dataArray[CHECK_ANSWER] = TRUE;
         } else if (buttonPressed(4, btns, lastBtns)) {
@@ -422,7 +423,7 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
         if (buttonPressed(1, btns, lastBtns)) {
             dataArray[RESET] = 1;
         }
-        Money=1;police=0;knif=0;health=0;randomEvents=0;promo=0;salary=0;
+        money=1;police=0;knif=0;health=0;randomEvents=0;promo=0;salary=0;
     }
     * lastBtns = btns;
 }
