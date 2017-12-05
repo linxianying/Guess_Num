@@ -1,178 +1,328 @@
 #include <stdint.h>   /* Declarations of uint_32 and the like */
-#include <stdlib.h>
-#include <stdio.h>
 #include <pic32mx.h>  /* Declarations of system-specific addresses etc */
 #include "mipslab.h"  /* Declatations for these labs */
+#include "sidefuncs.h"
 
-const unsigned int 
-					menuScreen = 0,  
-					gameScreen = 1, 
-					winScreen = 2,
-					wrongScreen = 3,
-					loseScreen = 4,
-					timeOutScreen =5;
-int timeoutcount = 0;
-int inputValue;
-char currentScreen;
-int upper = 100;
-int lower = 0;
-/* Interrupt Service Routine */
-void user_isr( void )
-{
-  return;
+#define TRUE 1
+#define FALSE 0
+
+volatile char * mPORTE = (volatile char * ) 0xbf886110;
+
+const unsigned int  Menu = 0,
+                    FirstTimeRun = 1,
+                    Introduction = 2,
+                    GuessInit = 3,
+                    GuessBig = 4,
+                    GuessNearBig = 5,
+                    Guesssmall = 6,
+                    GuessNearSmall = 7,
+                    Win = 8,
+                    TimeLimit = 9,
+                    AttemptsMax = 10;
+
+
+
+
+const unsigned int MAX_GUESSES = 6;
+
+const char ARROW = 62;
+
+unsigned int timeoutcount;
+unsigned int initialRandom = 38;
+unsigned int randomSeed = 100;
+unsigned int input2;
+unsigned int input = 1;
+unsigned int rightAnswer = 100;
+unsigned int attempts;
+unsigned int times;
+
+int getRandom(int num){
+	int seed = findPrime(num)%73*35%66 + 51;
+	seed++;
+	int random = (seed%500 + seed%299 +seed%199 + 3)%1000;
+	return random;
 }
 
-int timertest()
-{
-	if (IFS(0)&0x100) // time-out event
-	{
-		IFS(0)=0; 
-		return (1);
-	}
-	else
-	{
-		return (0);
-	}
+int findPrime(int num){
+	int i,j,temp,count=0;
+	if(num <= 1)
+		return 2;
+	if(num >= 1000)
+		num = num -999;
+    for(i=2;i<=1000;i++){
+        temp=0;
+        for(j=2;j<=100;j++){
+            if(i%j==0){
+                temp=1;
+                break;
+            }
+        }
+        if(temp==0){
+            count++;
+        }
+        if(count==num){
+            return i;
+        }
+    }
+	return (num%99+88)%1000;
 }
+
 /* Lab-specific initialization goes here */
-void labinit( void )
-{
-  // initialize Port E so that bits 7 through 0 of Port E are set as outputs(0)
-  // Register TRISE has address 0xbf886100
-  volatile int * trise = (volatile int *) 0xbf886100;
-  // least 8 bits are 0
-  * trise = * trise & 0xff00;
-  //initialize port D so that bits 11 through 5 of Port D are set as inputs(1)
-  TRISD = TRISD & 0x0fe0;
-  timeoutcount = 0;
-  T2CON = 0x70;
-  T2CONSET = 0x8000;
-  PR2 = (80000000/256)/10;
-  return;
-}
+void labinit( void ){
+    volatile char * mTRISE = (volatile char *) 0xbf886100;
+    volatile short * mTRISD = (volatile short *) 0xbf8860C0;
 
-/* This function is called repetitively from the main program */
-void labwork( void )
-{
-  volatile int * porte = (volatile int *) 0xbf886110;
-  * porte = 0x0; // for LED outputs
-  currentScreen = 0;
-  //gameInitial();
-  int btns;
-  int swt;
-  int value = 0;
-  if(currentScreen == menuScreen){
-	if(btns!=0||swt!=0){
-		currentScreen = gameScreen;
-		//updateScreen();
-		//开始画面 随机键开始游戏
-	}    
-    if(currentScreen == gameScreen){
-		delay( 1000 ); 
-		btns = getbtns();
-		swt = getsw();
-		
-		//for button 2
-		while(swt==0){
-			if( btns & 8){
-			  value += 1;
-			}else
-			if( btns & 4 ){
-				value += 10;
-			}else
-			if( btns & 2 ){
-				value += 100;
-			}else
-			if( btns & 1 ){
-				value += 1000;
-			}
-			if(value > 9999){
-			   value = 0;
-			}	
-			display_update();
-		}
-	}else
-    if(currentScreen == gameScreen){
-        if(swt!=0){
-			inputValue = value;
-		}
-	   //确认数据。
-    }else
-    if(currentScreen == wrongScreen){
-        if(swt!=0){
-	    //继续游戏
-            currentScreen = gameScreen;
-            //updateScreen();
-        }else
-           //继续游戏
-            if(currentScreen == winScreen){
-				if(swt!=0){
-					currentScreen = menuScreen;
-					//updateScreen();
-				}
-       
-			}
-    }
-    display_image(96, icon);
-  }
-}
-void updateScreen(void){
-	if(currentScreen == menuScreen){
-        //开始画面。
-		display_string(0,"\t");
-        display_string(1,"\tTo Start ");
-        display_string(2,"\tPress Any Key");
-        display_string(3,"\t");
-    }else 
-    if(currentScreen == winScreen){   
-        //游戏结束画面。
-		display_string(0,"\t");
-        display_string(1,"\tRight Answer!");
-        display_string(2,"\tCongratulation!");
-        display_string(3,"\tYou Win.");
-    }else 
-    if(currentScreen == loseScreen){   
-        //游戏结束画面。
-		display_string(0,"\t");
-        display_string(1,"\tNo Chance left!");
-        display_string(2,"\tSorry!");
-        display_string(3,"\tYou Lose.");
-    }else 
-    if(currentScreen == gameScreen){
-		//猜数字界面。
-        display_string(0,"\tGuess a number");
-        display_string(1,"\tYour guess: ");
-        display_string(2,"     ");
-        display_string(3,"\t");
-    }
+    *mTRISE = 0x00;     // Set to 0 for output.
+    *mTRISD = *mTRISD | 0x0fe0; // Set bits 5-11 to input
 
-    display_update();
+    //Clock init
+    timeoutcount = 0;
+    T2CON = 0x70;
+    T2CONSET = 0x8000;
+    PR2 = (80000000 / 256 ) / 10;
     return;
 }
 
-void gameInitial(void){
-	//char currentScreen;    
-	//int inputValue;//输入的数值
-	int attempt;//尝试次数
-	int gameover;
-	int answer;//随机数
-	//int upper=100;//上限
-	//int lower=0;//下限
-	int chance=10;
-	int currentRank=0;
-	int arr[10];
 
-	
-	gameover = 0;
-	/* random int between 1 and 100 */
-	answer = 66;
-	attempt = 0;
-	upper=100;
-	lower=0;
-	int i=0;
-	while(i<10){
-		arr[i] = 11;
-	}
-	//updateScreen();	 
-	return;
+/**
+ * Timer that controlls the screens refreshrate, the blinking of the leds and supplies
+ * a random seed for the sequence generator.
+ */
+int timer(void){
+    if(IFS(0) & 0x100){
+        IFS(0) = 0;
+        timeoutcount++;
+        randomSeed = (randomSeed + 2) % 100;
+        return 1;
+    }
+    return 0;
+}
+
+void tostring(char str[], int num)
+{
+    int i, rem, len = 0, n;
+ 
+    n = num;
+    while (n != 0)
+    {
+        len++;
+        n /= 10;
+    }
+    for (i = 0; i < len; i++)
+    {
+        rem = num % 10;
+        num = num / 10;
+        str[len - (i + 1)] = rem + '0';
+    }
+    str[len] = '\0';
+}
+ 
+
+
+/**
+ * Updates the screen with the information given from the mastermind loop. Is ONLY called from the mastermind loop
+ * Is not allowed to change the value from any of the inputs it is given, only allowed to display thing on the screen.
+ */
+void updateScreen(const unsigned int currentScreen) {
+    if (currentScreen == Menu) {
+        display_string(0, "\tGame ver1.0");
+        display_string(1, "\tWelcome!");
+        display_string(2, "\tGuessGod");
+        display_string(3, "\tBtn to play");
+    } else if (currentScreen == FirstTimeRun) {
+        display_string(0, "\tFirst Time?");
+        display_string(1, "\tIntro:");
+        display_string(2, "\t3 Levels");
+        display_string(3, "\tNext");
+    } else if (currentScreen == Introduction) {
+        display_string(0, "\tGuess a number");
+        display_string(1, "\tChange with btn ");
+        display_string(2, "\tcomfirm with swt");
+        display_string(3, "\tready to play?");
+    } else if (currentScreen == GuessInit) {
+        display_string(0, "\tGuess!");
+        char str1[] = "\tInput:";
+        char str2[10];
+        tostring(str2,input);
+        strcat(str1, str2);
+        display_string(1, str1);
+        display_string(2, "\tChange input with button");
+        display_string(3, "\t");
+    } else if (currentScreen == GuessBig) {
+        display_string(0, "\tWrong answer!");
+        display_string(1, "\tInput is:");
+        display_string(2, "\tA is less");
+        display_string(3, "\tNot even close. xd");
+    } else if (currentScreen == GuessNearBig) {
+        display_string(0, "\t Wrong answer!");
+        display_string(1, "\t Input is:");
+        display_string(2, "\t A is less");
+        display_string(3, "\t Almost，Almost.");
+    } else if (currentScreen == Guesssmall) {
+        display_string(0, "\tWrong answer!");
+        display_string(1, "\tInput is:");
+        display_string(2, "\tA is larger");
+        display_string(3, "\tNot even close. xd");
+    } else if (currentScreen == GuessNearSmall) {
+        display_string(0, "\t Wrong answer!");
+        display_string(1, "\t Input is:");
+        display_string(2, "\t A is larger ");
+        display_string(3, "\t Almost，Almost.");
+    } else if (currentScreen == Win) {
+        display_string(0, "\tRight Answer!");
+        display_string(1, "\tcongratulation!");
+        display_string(2, "\tYour Attempts:");
+        display_string(3, "\tPlay Again?");
+    } else if (currentScreen == TimeLimit) {
+        display_string(0, "\tSorry.");
+        display_string(1, "\tTime Limit exceeded");
+        display_string(2, "\tU Lost the game");
+        display_string(3, "\tPlay again?");
+    } else if (currentScreen == AttemptsMax) {
+        display_string(0, "\tSorry.");
+        display_string(1, "\tNo attempts");
+        display_string(2, "\tU Lost the game");
+        display_string(3, "\tPlay again?");
+    }
+    display_update();
+}
+
+/**
+ * Returns 1 if the button was pressed last cycle but is not pressed
+ * this cycle. Ergo the button was released
+ */
+char buttonPressed(int buttonNr, int buttons, int * lastBtns){
+    int temp = powerTo(2,buttonNr - 1);
+
+    if( (temp & *lastBtns) && ((buttons & temp) == 0) )                                                                                                                                                                                                                //if(    (((temp & ~(buttons)) & (lastBtns & temp)) == temp)                    && lastBtns)
+        return 1;
+    return 0;
+}
+
+const int UPDATE_SCREEN         = 0;
+const int ITER_INCREASE         = 1;
+const int SYMBOL_INCREASE       = 2;
+const int SYMBOL_INDEX_CHANGE   = 3;
+const int RESET                 = 4;
+const int CHECK_ANSWER          = 5;
+const int REMOVE_BLINKS         = 6;
+const int GOTO_MAP              = 7;
+
+
+void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firstTime) {
+    int btns = getbtns();
+    if (currentScreen == Introduction) {
+        if (buttonPressed(1, btns, lastBtns)) {
+            dataArray[UPDATE_SCREEN] = GuessInit;
+        }
+    } else if (currentScreen == Menu) {
+        if (buttonPressed(1, btns, lastBtns)) {
+            if (firstTime == 0) {
+                dataArray[UPDATE_SCREEN] = FirstTimeRun;
+                firstTime = 1;
+            } else {
+                dataArray[UPDATE_SCREEN] = GuessInit;
+            }
+        }
+    } else if (currentScreen == FirstTimeRun) {
+        if (buttonPressed(1, btns, lastBtns)) {
+            dataArray[UPDATE_SCREEN] = Introduction;
+        }
+    } else if (currentScreen == GuessBig || currentScreen == GuessNearBig || currentScreen == Guesssmall || currentScreen == GuessNearSmall) {
+        if (buttonPressed(1, btns, lastBtns)) {
+            dataArray[UPDATE_SCREEN] = GuessInit;
+        }
+    } else if (currentScreen == GuessInit) {
+        if (buttonPressed(1, btns, lastBtns)) {
+            dataArray[CHECK_ANSWER] = TRUE;
+        } else if (buttonPressed(4, btns, lastBtns)) {
+            input += 100;
+            dataArray[UPDATE_SCREEN] = GuessInit;
+        } else if (buttonPressed(3, btns, lastBtns)) {
+            input += 10;
+            dataArray[UPDATE_SCREEN] = GuessInit;
+        } else if (buttonPressed(2, btns, lastBtns)) {
+            input += 1;
+            dataArray[UPDATE_SCREEN] = GuessInit;
+        }
+        if (input > 1000) {
+            input = 0;
+        }
+    } else if (currentScreen == Win || currentScreen == TimeLimit || currentScreen == AttemptsMax) {
+        if (buttonPressed(1, btns, lastBtns)) {
+            dataArray[RESET] = 1;
+        }
+    }
+    * lastBtns = btns;
+}
+
+void guessgod(void) {
+    char currentScreen = 0;
+    int lastBtns = 0;
+    int dataArray[8];
+    int dataArray_length = sizeof(dataArray) / sizeof(dataArray[0]);
+    int i;
+    times = 0;
+    attempts = 0;
+    for (i = 0; i < dataArray_length; i++) {
+        dataArray[i] = 0;
+    }
+    i = 0;
+    int difference;
+    int bigger;
+    rightAnswer = initialRandom;
+
+    int firstTime;
+    int timeMax = 10000;
+    int attemptsMax = 10;
+    while (TRUE) {
+        if (dataArray[CHECK_ANSWER] == TRUE) {
+            if (input == rightAnswer) {
+                dataArray[UPDATE_SCREEN] = Win;
+            } else if (times >= timeMax) {
+                dataArray[UPDATE_SCREEN] = TimeLimit;
+            } else if (attempts >= attemptsMax) {
+                dataArray[UPDATE_SCREEN] = AttemptsMax;
+            } else {
+              
+              difference = rightAnswer - input;
+                
+                if(difference<0){
+                  dataArray[UPDATE_SCREEN] = GuessBig;
+                }/*else if((abs(difference)<50 )&&(bigger ==1)){
+                  dataArray[UPDATE_SCREEN] = GuessNearBig;}}*/
+                
+              else if(difference>0){
+                  dataArray[UPDATE_SCREEN] = Guesssmall;
+                }/*else if((abs(difference)<50 )&&(bigger !=1)){
+                  dataArray[UPDATE_SCREEN] = GuessNearSmall;
+                }*/
+            }
+        }
+        if (dataArray[RESET]) {
+            times = 0;
+            attempts = 0;
+            for (i = 0; i < dataArray_length; i++) {
+                dataArray[i] = 0;
+            }
+            i = 0;
+            bigger = 0;
+            input = 1;
+            rightAnswer = getRandom((rightAnswer+1));
+        }
+        if (dataArray[UPDATE_SCREEN] != -1) {
+            currentScreen = dataArray[UPDATE_SCREEN];
+        }
+        updateScreen(currentScreen);
+      
+        for (i = 0; i < dataArray_length; i++) {
+            dataArray[i] = 0;
+        }
+        i = 0;
+        dataArray[UPDATE_SCREEN] = -1;
+        usebtns(currentScreen, & lastBtns, dataArray, firstTime);
+    }
+}
+void user_isr(void) {
+    return;
 }
