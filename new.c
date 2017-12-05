@@ -26,7 +26,8 @@ const unsigned int  Menu = 0,
                     Promotion =15,
                     Work1 = 16,
                     Work2 = 17,
-                    Work3 = 18;
+                    Work3 = 18,
+                    Athome = 19;
 
 
 
@@ -306,10 +307,10 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
           health=health-1;
           if(randomEvents=0){
             dataArray[UPDATE_SCREEN] = EventA1;
-            random ++;
+            randomEvents ++;
           }else{
             dataArray[UPDATE_SCREEN] = EventA2;
-            random=random-1;
+            randomEvents=randomEvents-1;
           }
         }
     }
@@ -471,7 +472,7 @@ void guessgod(void) {
         }
         if (dataArray[RESET]) {
             times = 0;
-            attempts = 0;
+            money = 1;
             for (i = 0; i < dataArray_length; i++) {
                 dataArray[i] = 0;
             }
