@@ -55,7 +55,7 @@ unsigned int attempts = 0;
 int getRandom(int num){
 	int seed = findPrime(num)%73*35%66 + 51;
 	seed++;
-	int random = (seed%500 + seed%299 +seed%199 + 3)%1000;
+	int random = seed%500 + seed%299 + seed%199 + 3;
 	return random;
 }
 
@@ -155,25 +155,20 @@ void updateScreen(const unsigned int currentScreen) {
         display_string(1, "\t1 lottery");
         display_string(2, "\t2 promotion");
         display_string(3, "\t3 rich");
-    }
-    else if (currentScreen == Athome) {
-      char str1[] = "\tMoney:";
-      char str2[10];
-      tostring(str2,money);
-      strcat(str1, str2);
+    } else if (currentScreen == Athome) {
+        char str1[] = "\tMoney:";
+        char str2[10];
+        tostring(str2, money);
+        strcat(str1, str2);
         display_string(0, "\t1 work");
         display_string(1, "\t2 lottery");
         display_string(2, "\t3 goOutside");
         display_string(3, str1);
-    }
-
-
-
-    else if (currentScreen == GuessInit) {
+    } else if (currentScreen == GuessInit) {
         display_string(0, "\tbuyALottery!");
         char str1[] = "\tNo:";
         char str2[10];
-        tostring(str2,input);
+        tostring(str2, input);
         strcat(str1, str2);
         display_string(1, str1);
         display_string(2, "\tselect Num with btn");
@@ -189,10 +184,10 @@ void updateScreen(const unsigned int currentScreen) {
         display_string(2, "\t ++Money(1)");
         display_string(3, "\t Not bad.");
     } else if (currentScreen == Guesssmall) {
-      display_string(0, "\tunfortunately");
-      display_string(1, "\tYou missed");
-      display_string(2, "\tcostMoney(1)");
-      display_string(3, "\tclose to get");
+        display_string(0, "\tunfortunately");
+        display_string(1, "\tYou missed");
+        display_string(2, "\tcostMoney(1)");
+        display_string(3, "\tclose to get");
     } else if (currentScreen == GuessNearSmall) {
         display_string(0, "\tunfortunately");
         display_string(1, "\t Input is:");
@@ -213,49 +208,47 @@ void updateScreen(const unsigned int currentScreen) {
         display_string(1, "\tdiedOfStarvation");
         display_string(2, "\tU Lost the game");
         display_string(3, "\tPlay again?");
-    }else if (currentScreen == EventA1) {
+    } else if (currentScreen == EventA1) {
         display_string(0, "\tRandom event");
         display_string(1, "\tStore-");
         display_string(2, "\t1 Fraud(3)");
         display_string(3, "\t2 robbery(4)");
-    }else if (currentScreen == EventA2) {
+    } else if (currentScreen == EventA2) {
         display_string(0, "\tRandom event");
         display_string(1, "\tBank-");
         display_string(2, "\t1 salary(2)");
         display_string(3, "\t2 robbery(N) ");
-    }else if (currentScreen == EventA3) {
+    } else if (currentScreen == EventA3) {
         display_string(0, "\tprison");
         display_string(1, "\tarrested");
         display_string(2, "\tU Lost the game");
         display_string(3, "\tPlay again?");
-    }else if (currentScreen == Rich) {
-      display_string(0, "\tcongratulation");
-      display_string(1, "\tyouBecomeRich");
-      display_string(2, "\tYou Win");
-      display_string(3, "\tPlay Again?");
-    }else if (currentScreen == Work1) {
+    } else if (currentScreen == Rich) {
+        display_string(0, "\tcongratulation");
+        display_string(1, "\tyouBecomeRich");
+        display_string(2, "\tYou Win");
+        display_string(3, "\tPlay Again?");
+    } else if (currentScreen == Work1) {
         display_string(0, "\tWorking.");
         display_string(1, "\tSitework-");
         display_string(2, "\t1 workHard");
         display_string(3, "\t2 pretend");
-    }else if (currentScreen == Work2) {
+    } else if (currentScreen == Work2) {
         display_string(0, "\tuGetMoney");
         display_string(1, "\t++Money(2)");
         display_string(2, "\t1 buy lottery");
         display_string(3, "\t2 banktoHome");
-    }else if (currentScreen == Work3) {
+    } else if (currentScreen == Work3) {
         display_string(0, "\tovertime");
         display_string(1, "\tu died");
         display_string(2, "\tU Lost the game");
         display_string(3, "\tPlay again?");
-    }else if (currentScreen == Promotion) {
+    } else if (currentScreen == Promotion) {
         display_string(0, "\tcongratulation");
         display_string(1, "\tyou get promoted");
         display_string(2, "\tYou Win");
         display_string(3, "\tPlay Again?");
     }
-
-
     display_update();
 }
 
@@ -292,109 +285,94 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
                 dataArray[UPDATE_SCREEN] = Athome;
             }
         }
-    }
-
-    else if (currentScreen == Athome) {
-      if(money>10){
-        dataArray[UPDATE_SCREEN] = Rich;
-      }else
+    } else if (currentScreen == Athome) {
+        if (money > 10) {
+            dataArray[UPDATE_SCREEN] = Rich;
+        } else
         if (buttonPressed(1, btns, lastBtns)) {
             dataArray[UPDATE_SCREEN] = Work1;
-        }else
+        } else
         if (buttonPressed(2, btns, lastBtns)) {
             dataArray[UPDATE_SCREEN] = GuessInit;
-        }else
+        } else
         if (buttonPressed(3, btns, lastBtns)) {
-          health=health-1;
-          if(randomEvents=0){
-            dataArray[UPDATE_SCREEN] = EventA1;
-            randomEvents ++;
-          }else{
-            dataArray[UPDATE_SCREEN] = EventA2;
-            randomEvents=randomEvents-1;
-          }
+            health = health - 1;
+            if (randomEvents = 0) {
+                dataArray[UPDATE_SCREEN] = EventA1;
+                randomEvents++;
+            } else {
+                dataArray[UPDATE_SCREEN] = EventA2;
+                randomEvents = randomEvents - 1;
+            }
         }
-    }
-
-    else if (currentScreen == EventA1) {
+    } else if (currentScreen == EventA1) {
         if (buttonPressed(1, btns, lastBtns)) {
-            if(police<=2){
-            dataArray[UPDATE_SCREEN] = Work2;
-            police=police+2;
-            money=money+3;
-                      if(money>10){money=10;}
-          }else{
-            dataArray[UPDATE_SCREEN] =EventA3;
-        }
-      }else
+            if (police <= 2) {
+                dataArray[UPDATE_SCREEN] = Work2;
+                police = police + 2;
+                money = money + 3;
+                if (money > 10) {
+                    money = 10;
+                }
+            } else {
+                dataArray[UPDATE_SCREEN] = EventA3;
+            }
+        } else
         if (buttonPressed(2, btns, lastBtns)) {
-          if(police<=2){
-          dataArray[UPDATE_SCREEN] = Work2;
-          police=police+3;
-          money=money+4;
-          if(money>10){money=10;}
-          knif++;
-        }else{  dataArray[UPDATE_SCREEN] =EventA3;}}}
-
-        else if (currentScreen == EventA2) {
-            if (buttonPressed(1, btns, lastBtns)) {
-              dataArray[UPDATE_SCREEN] =Work2;
-              money=money+salary;
-              salary=0;
-          }else
-            if (buttonPressed(2, btns, lastBtns)) {
-              if(police<=2&&knif!=0){
-              dataArray[UPDATE_SCREEN] = Rich;
-              money=10;
-
-            }else{    dataArray[UPDATE_SCREEN] =EventA3;}}}
-
-
-            else if (currentScreen == Work1) {
-                if (buttonPressed(1, btns, lastBtns)) {
-                  health++;
-                  if(health>5){
-                    dataArray[UPDATE_SCREEN] = Work3;
-                  }else{
-                    salary=salary+2;
-                    police=police-1;
-                    dataArray[UPDATE_SCREEN] = Work2;
-                  }
-
-              }else
-                if (buttonPressed(2, btns, lastBtns)) {
-                  promo++;
-                  health=health-1;
-                  salary=salary+2;
-                  if(promo>3){dataArray[UPDATE_SCREEN] = Promotion;}
-                  else{
-                    dataArray[UPDATE_SCREEN] = Work2;
-                  }
-
+            if (police <= 2) {
+                dataArray[UPDATE_SCREEN] = Work2;
+                police = police + 3;
+                money = money + 4;
+                if (money > 10) {
+                    money = 10;
                 }
-              }
-
-              else if(currentScreen == Work2) {
-                if (buttonPressed(1, btns, lastBtns)) {
-                    dataArray[UPDATE_SCREEN] = GuessInit;
-                } else if  (buttonPressed(2, btns, lastBtns)) {
-                  dataArray[UPDATE_SCREEN] = Athome;
-                }
-
-
-
-              }
-
-
-
-
-
-
-
-
-
-
-    else if (currentScreen == FirstTimeRun) {
+                knif++;
+            } else {
+                dataArray[UPDATE_SCREEN] = EventA3;
+            }
+        }
+    } else if (currentScreen == EventA2) {
+        if (buttonPressed(1, btns, lastBtns)) {
+            dataArray[UPDATE_SCREEN] = Work2;
+            money = money + salary;
+            salary = 0;
+        } else
+        if (buttonPressed(2, btns, lastBtns)) {
+            if (police <= 2 && knif != 0) {
+                dataArray[UPDATE_SCREEN] = Rich;
+                money = 10;
+            } else {
+                dataArray[UPDATE_SCREEN] = EventA3;
+            }
+        }
+    } else if (currentScreen == Work1) {
+        if (buttonPressed(1, btns, lastBtns)) {
+            health++;
+            if (health > 5) {
+                dataArray[UPDATE_SCREEN] = Work3;
+            } else {
+                salary = salary + 2;
+                police = police - 1;
+                dataArray[UPDATE_SCREEN] = Work2;
+            }
+        } else
+        if (buttonPressed(2, btns, lastBtns)) {
+            promo++;
+            health = health - 1;
+            salary = salary + 2;
+            if (promo > 3) {
+                dataArray[UPDATE_SCREEN] = Promotion;
+            } else {
+                dataArray[UPDATE_SCREEN] = Work2;
+            }
+        }
+    } else if (currentScreen == Work2) {
+        if (buttonPressed(1, btns, lastBtns)) {
+            dataArray[UPDATE_SCREEN] = GuessInit;
+        } else if (buttonPressed(2, btns, lastBtns)) {
+            dataArray[UPDATE_SCREEN] = Athome;
+        }
+    } else if (currentScreen == FirstTimeRun) {
         if (buttonPressed(1, btns, lastBtns)) {
             dataArray[UPDATE_SCREEN] = Introduction;
         }
@@ -403,7 +381,9 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
             dataArray[UPDATE_SCREEN] = GuessInit;
         }
     } else if (currentScreen == GuessInit) {
-      if(money<0){dataArray[UPDATE_SCREEN] = AttemptsMax;}else
+        if (money < 0) {
+            dataArray[UPDATE_SCREEN] = AttemptsMax;
+        } else
         if (buttonPressed(1, btns, lastBtns)) {
             dataArray[CHECK_ANSWER] = TRUE;
         } else if (buttonPressed(4, btns, lastBtns)) {
@@ -419,15 +399,20 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
         if (input > 1000) {
             input = 0;
         }
-    } else if (currentScreen == Rich ||currentScreen == Win || currentScreen == TimeLimit || currentScreen == AttemptsMax|| currentScreen == EventA3|| currentScreen == Work3|| currentScreen == Promotion) {
+    } else if (currentScreen == Rich || currentScreen == Win || currentScreen == TimeLimit || currentScreen == AttemptsMax || currentScreen == EventA3 || currentScreen == Work3 || currentScreen == Promotion) {
         if (buttonPressed(1, btns, lastBtns)) {
             dataArray[RESET] = 1;
         }
-        money=1;police=0;knif=0;health=0;randomEvents=0;promo=0;salary=0;
+        money = 1;
+        police = 0;
+        knif = 0;
+        health = 0;
+        randomEvents = 0;
+        promo = 0;
+        salary = 0;
     }
     * lastBtns = btns;
 }
-
 void guessgod(void) {
     char currentScreen = 0;
     int lastBtns = 0;
@@ -443,7 +428,6 @@ void guessgod(void) {
     int difference;
     int bigger;
     rightAnswer = initialRandom;
-
     int firstTime;
     int timeMax = 10000;
     int attemptsMax = 10;
@@ -456,19 +440,18 @@ void guessgod(void) {
             } else if (attempts >= attemptsMax) {
                 dataArray[UPDATE_SCREEN] = AttemptsMax;
             } else {
-
-              difference = rightAnswer - input;
-
-                if(difference<0){
-                  dataArray[UPDATE_SCREEN] = GuessBig;
-                }/*else if((abs(difference)<50 )&&(bigger ==1)){
-                  dataArray[UPDATE_SCREEN] = GuessNearBig;}}*/
-
-              else if(difference>0){
-                  dataArray[UPDATE_SCREEN] = Guesssmall;
-                }/*else if((abs(difference)<50 )&&(bigger !=1)){
-                  dataArray[UPDATE_SCREEN] = GuessNearSmall;
-                }*/
+                difference = rightAnswer - input;
+                if (difference < 0) {
+                    dataArray[UPDATE_SCREEN] = GuessBig;
+                }
+                /*else if((abs(difference)<50 )&&(bigger ==1)){
+                                  dataArray[UPDATE_SCREEN] = GuessNearBig;}}*/
+                else if (difference > 0) {
+                    dataArray[UPDATE_SCREEN] = Guesssmall;
+                }
+                /*else if((abs(difference)<50 )&&(bigger !=1)){
+                                  dataArray[UPDATE_SCREEN] = GuessNearSmall;
+                                }*/
             }
         }
         if (dataArray[RESET]) {
@@ -480,13 +463,12 @@ void guessgod(void) {
             i = 0;
             bigger = 0;
             input = 1;
-            rightAnswer = getRandom((rightAnswer+1));
+            rightAnswer = getRandom((rightAnswer + 1));
         }
         if (dataArray[UPDATE_SCREEN] != -1) {
             currentScreen = dataArray[UPDATE_SCREEN];
         }
         updateScreen(currentScreen);
-
         for (i = 0; i < dataArray_length; i++) {
             dataArray[i] = 0;
         }
