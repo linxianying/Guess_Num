@@ -6,8 +6,6 @@
 #define TRUE 1
 #define FALSE 0
 
-volatile char * mPORTE = (volatile char * ) 0xbf886110;
-
 const unsigned int  Menu = 0,
                     FirstTimeRun = 1,
                     Introduction = 2,
@@ -48,6 +46,7 @@ unsigned int randomEvents;
 unsigned int police;
 unsigned int salary;
 unsigned int attempts = 0;
+unsigned int led = 1;
 
 int getRandom(int num){
 	int seed = findPrime(num)%73*35%66 + 51;
@@ -82,12 +81,10 @@ int findPrime(int num){
 
 /* Lab-specific initialization goes here */
 void labinit( void ){
-    volatile char * mTRISE = (volatile char *) 0xbf886100;
-    volatile short * mTRISD = (volatile short *) 0xbf8860C0;
 
-    *mTRISE = 0x00;     // Set to 0 for output.
-    *mTRISD = *mTRISD | 0x0fe0; // Set bits 5-11 to input
-
+    TRISD = TRISD|0x0ff0; // Set bits 5-11 to input
+	TRISE = TRISE&~0xff;
+	
     //Clock init
     timeoutcount = 0;
     T2CON = 0x70;
@@ -111,18 +108,15 @@ int timer(void){
     return 0;
 }
 
-void tostring(char str[], int num)
-{
+void tostring(char str[], int num) {
     int i, rem, len = 0, n;
 
     n = num;
-    while (n != 0)
-    {
+    while (n != 0) {
         len++;
         n /= 10;
     }
-    for (i = 0; i < len; i++)
-    {
+    for (i = 0; i < len; i++) {
         rem = num % 10;
         num = num / 10;
         str[len - (i + 1)] = rem + '0';
@@ -260,6 +254,51 @@ char buttonPressed(int buttonNr, int buttons, int * lastBtns){
     return 0;
 }
 
+int power(int a,int b) { 
+	int n=1; 
+	int x=0;
+	while(x<b) {
+		n=n*a; 
+		x++;
+	}
+	return n; 
+} 
+
+
+void addLED(void){
+	if(led == 0){
+		PORTE = 0x1;
+	}else if(led>8){
+		led = 0;
+		PORTE = 0x1;
+	}else if(led == 8){
+		PORTE = 0x0;
+	}else{
+		int loop = power(2,led);
+		while(loop>0){
+			PORTE += 1;
+			loop--;
+		}
+		
+	}
+	led++;
+	return;
+}
+
+void minusLED(void){
+	if(led <= 0 || PORTE == 0x0){
+		PORTE = 0x0;
+	}else{
+		int loop = power(2,led-1);
+		while(loop>0){
+			PORTE -= 1;
+			loop--;
+		}
+	}
+	led--;
+	return;
+}
+
 const int UPDATE_SCREEN         = 0;
 const int RESET                 = 1;
 const int CHECK_ANSWER          = 2;
@@ -306,8 +345,12 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
                 dataArray[UPDATE_SCREEN] = Work2;
                 police = police + 2;
                 money = money + 3;
+				addLED();
+				addLED();
+				addLED();
                 if (money > 10) {
                     money = 10;
+					PORTE = 0xff;
                 }
             } else {
                 dataArray[UPDATE_SCREEN] = EventA3;
@@ -317,8 +360,13 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
                 dataArray[UPDATE_SCREEN] = Work2;
                 police = police + 3;
                 money = money + 4;
+				addLED();
+				addLED();
+				addLED();
+				addLED();
                 if (money > 10) {
                     money = 10;
+					PORTE = 0xff;
                 }
                 knif++;
             } else {
@@ -329,12 +377,17 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
         if (buttonPressed(1, btns, lastBtns)) {
             dataArray[UPDATE_SCREEN] = Work2;
             money = money + salary;
+			int temp = salary;
+			while(temp>0){
+				addLED();
+				temp--;
+			}
             salary = 0;
-        } else
-        if (buttonPressed(2, btns, lastBtns)) {
+        } else if (buttonPressed(2, btns, lastBtns)) {
             if (police <= 2 && knif != 0) {
                 dataArray[UPDATE_SCREEN] = Rich;
                 money = 10;
+				PORTE = 0xff;
             } else {
                 dataArray[UPDATE_SCREEN] = EventA3;
             }
@@ -349,8 +402,7 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
                 police = police - 1;
                 dataArray[UPDATE_SCREEN] = Work2;
             }
-        } else
-        if (buttonPressed(2, btns, lastBtns)) {
+        } else if (buttonPressed(2, btns, lastBtns)) {
             promo++;
             health = health - 1;
             salary = salary + 2;
@@ -375,10 +427,14 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
             dataArray[UPDATE_SCREEN] = GuessInit;
         }
     } else if (currentScreen == GuessInit) {
+		
         if (money < 0) {
             dataArray[UPDATE_SCREEN] = AttemptsMax;
         } else if (buttonPressed(1, btns, lastBtns)) {
             dataArray[CHECK_ANSWER] = TRUE;
+			money = money - 2;
+			minusLED();
+			minusLED();
         } else if (buttonPressed(4, btns, lastBtns)) {
             input += 100;
             dataArray[UPDATE_SCREEN] = GuessInit;
@@ -397,6 +453,8 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
             dataArray[RESET] = 1;
         }
         money = 1;
+		PORTE = 0x1;
+		led = 0;
         police = 0;
         knif = 0;
         health = 0;
@@ -407,6 +465,9 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
     * lastBtns = btns;
 }
 void guessgod(void) {
+	//volatile int * porte = (volatile int *) 0xbf886110;
+    PORTE = 0x1;
+	TRISECLR = 0xFF;
     char currentScreen = 0;
     int lastBtns = 0;
     int dataArray[8];
@@ -436,11 +497,13 @@ void guessgod(void) {
                 difference = rightAnswer - input;
                 if (difference < 0) {
                     dataArray[UPDATE_SCREEN] = GuessBig;
+					//addLED();
                 }
                 /*else if((abs(difference)<50 )&&(bigger ==1)){
                                   dataArray[UPDATE_SCREEN] = GuessNearBig;}}*/
                 else if (difference > 0) {
                     dataArray[UPDATE_SCREEN] = Guesssmall;
+					//addLED();
                 }
                 /*else if((abs(difference)<50 )&&(bigger !=1)){
                                   dataArray[UPDATE_SCREEN] = GuessNearSmall;
@@ -450,6 +513,8 @@ void guessgod(void) {
         if (dataArray[RESET]) {
             times = 0;
             money = 1;
+			PORTE = 0x1;
+			led = 0;
             for (i = 0; i < dataArray_length; i++) {
                 dataArray[i] = 0;
             }
@@ -473,3 +538,4 @@ void guessgod(void) {
 void user_isr(void) {
     return;
 }
+
