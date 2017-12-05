@@ -29,9 +29,6 @@ const unsigned int  Menu = 0,
                     Work3 = 18,
                     Athome = 19;
 
-
-
-
 const unsigned int MAX_GUESSES = 6;
 
 const char ARROW = 62;
@@ -80,7 +77,7 @@ int findPrime(int num){
             return i;
         }
     }
-	return (num%99+88)%1000;
+	return num%99+88;
 }
 
 /* Lab-specific initialization goes here */
@@ -132,7 +129,6 @@ void tostring(char str[], int num)
     }
     str[len] = '\0';
 }
-
 
 
 /**
@@ -269,7 +265,6 @@ const int RESET                 = 1;
 const int CHECK_ANSWER          = 2;
 
 
-
 void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firstTime) {
     int btns = getbtns();
     if (currentScreen == Introduction) {
@@ -317,8 +312,7 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
             } else {
                 dataArray[UPDATE_SCREEN] = EventA3;
             }
-        } else
-        if (buttonPressed(2, btns, lastBtns)) {
+        } else if (buttonPressed(2, btns, lastBtns)) {
             if (police <= 2) {
                 dataArray[UPDATE_SCREEN] = Work2;
                 police = police + 3;
@@ -383,8 +377,7 @@ void usebtns(const char currentScreen, int * lastBtns, int * dataArray, int firs
     } else if (currentScreen == GuessInit) {
         if (money < 0) {
             dataArray[UPDATE_SCREEN] = AttemptsMax;
-        } else
-        if (buttonPressed(1, btns, lastBtns)) {
+        } else if (buttonPressed(1, btns, lastBtns)) {
             dataArray[CHECK_ANSWER] = TRUE;
         } else if (buttonPressed(4, btns, lastBtns)) {
             input += 100;
