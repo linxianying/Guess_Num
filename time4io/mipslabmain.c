@@ -1,9 +1,9 @@
 /* mipslabmain.c
 
    This file written 2015 by Axel Isaksson,
-   modified 2015, 2017 by F Lundevall
+   modified 2015 by F Lundevall
 
-   Latest update 2017-04-21 by F Lundevall
+   Latest update 2015-08-28 by F Lundevall
 
    For copyright and licensing, see file COPYING */
 
@@ -12,17 +12,10 @@
 #include "mipslab.h"  /* Declatations for these labs */
 
 int main(void) {
-        /*
-	  This will set the peripheral bus clock to the same frequency
-	  as the sysclock. That means 80 MHz, when the microcontroller
-	  is running at 80 MHz. Changed 2017, as recommended by Axel.
-	*/
-	SYSKEY = 0xAA996655;  /* Unlock OSCCON, step 1 */
-	SYSKEY = 0x556699AA;  /* Unlock OSCCON, step 2 */
-	while(OSCCON & (1 << 21)); /* Wait until PBDIV ready */
-	OSCCONCLR = 0x180000; /* clear PBDIV bit <0,1> */
-	while(OSCCON & (1 << 21));  /* Wait until PBDIV ready */
-	SYSKEY = 0x0;  /* Lock OSCCON */
+	/* Set up peripheral bus clock */
+        /* OSCCONbits.PBDIV = 1; */
+        OSCCONCLR = 0x100000; /* clear PBDIV bit 1 */
+	OSCCONSET = 0x080000; /* set PBDIV bit 0 */
 	
 	/* Set up output pins */
 	AD1PCFG = 0xFFFF;
@@ -56,8 +49,9 @@ int main(void) {
 	
 	display_init();
 	display_update();
-	labinit(); 
-	guessgod(); 
-	
+
+
+	labinit(); /* Do any lab-specific initialization */
+	guessgod(); /* Do lab-specific things again and again */
 	return 0;
 }
