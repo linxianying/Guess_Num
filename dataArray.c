@@ -38,3 +38,7 @@ void resetData(int (*arr)[State])
     }
 }
  
+void game(void) {
+    current = 0;
+    while (1) {}
+}
