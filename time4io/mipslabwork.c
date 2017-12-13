@@ -32,7 +32,6 @@ unsigned int randomSeed = 100;
 unsigned int input2;
 unsigned int input = 1;
 unsigned int rightAnswer = 100;
-unsigned int money = 1;
 unsigned int times;
 unsigned int knif;
 unsigned int health;
@@ -42,12 +41,15 @@ unsigned int police;
 unsigned int salary;
 unsigned int attempts = 0;
 unsigned int led = 1;
+signed int money = 1;
 
 const int update = 0;
 const int reset = 1;
 const int check = 2;
 
-
+unsigned int checkUpdate;
+unsigned int checkValue;
+unsigned int checkReset;
 
 /* Lab-specific initialization goes here */
 void labinit(void){
@@ -74,23 +76,12 @@ int power(int a,int b) {
 } 
 
 
-/**
- * Returns 1 if the button was pressed last cycle but is not pressed
- * this cycle. Ergo the button was released
- */
-char checkButton(int buttonNr, int buttons, int * pastButton){
-    int temp = power(2,buttonNr - 1);
 
-    if( (temp & *pastButton) && ((buttons & temp) == 0) )                                                                                                                                                                                                                //if(    (((temp & ~(buttons)) & (pastButton & temp)) == temp)                    && pastButton)
-        return 1;
-    return 0;
-}
 
-void allLED(void){
-	PORTE = 0x11111;
-}
+
 
 void addLED(void){
+	
 	if(led == 0){
 		PORTE = 0x1;
 	}else if(led>8){
@@ -109,6 +100,13 @@ void addLED(void){
 	led++;
 	return;
 }
+void allLED(void){
+	led = 0;
+	PORTE = 0x1;
+	int i=0;
+	for(i=0;i<8;i++)
+		addLED();
+}
 
 
 void minusLED(void){
@@ -126,20 +124,21 @@ void minusLED(void){
 }
 
 
-void toString(char str[], int num) {
-    int i, rem, len = 0, n;
-
-    n = num;
-    while (n != 0) {
-        len++;
-        n /= 10;
+void turnToString(char charList[], int num) {
+	int remainder;
+    int temp = num;
+	int length = 0;
+    while (temp != 0) {
+        length++;
+        temp = temp / 10;
     }
-    for (i = 0; i < len; i++) {
-        rem = num % 10;
-        num = num / 10;
-        str[len - (i + 1)] = rem + '0';
+	int i;
+    for (i =0;i<length;i++) {
+        remainder = num%10;
+        num = num/10;
+        charList[length-i-1] = remainder+'0';
     }
-    str[len] = '\0';
+    charList[length] = '\0';
 }
 
 int findPrime(int num){
@@ -163,13 +162,15 @@ int findPrime(int num){
             return i;
         }
     }
-	return num%99+88;
+	return num;
 }
 
 int getRandom(int num){
-	int seed = findPrime(num)%73*35%66 + 51;
-	seed++;
-	int random = seed%500 + seed%299 + seed%199 + 3;
+	int seed = findPrime(num)*35%1251;
+	int random = seed%1001;
+	
+	//srand(seed);
+	//int random = rand()%1001;
 	return random;
 }
 
@@ -183,24 +184,27 @@ void user_isr(void) {
 // to change screens when we needed
 void changeScreen(const unsigned int current) {
     if (current == MainMenu) {
-        display_string(0, "\tGame ver1.0");
-        display_string(1, "\tWelcome!");
-        display_string(2, "\tMonopolyG");
-        display_string(3, "\tp Btn to play");
+		display_image(96, icon);
+        display_string(0, "\tWelcome");
+        display_string(1, "\tto");
+        display_string(2, "\tLotteryGod");
+        display_string(3, "\tBtn to play");
     } else if (current == FirstTimeRun) {
-        display_string(0, "\tFirst Time?");
-        display_string(1, "\tintroduct");
-        display_string(2, "\tMonopolyG ");
+		display_image(96, icon);
+        display_string(0, "\tFirst time?");
+        display_string(1, "\tIntro");
+        display_string(2, "\tLotteryGod ");
         display_string(3, "\tNext");
     } else if (current == Introduction) {
-        display_string(0, "\tWin Condition");
+		display_image(96, icon);
+        display_string(0, "\tWin Conditions");
         display_string(1, "\t1 lottery");
         display_string(2, "\t2 promotion");
         display_string(3, "\t3 rich");
     } else if (current == Athome) {
         char str1[] = "\tMoney:";
         char str2[10];
-        toString(str2, money);
+        turnToString(str2, money);
         strcat(str1, str2);
         display_string(0, "\t1 work");
         display_string(1, "\t2 lottery");
@@ -210,129 +214,158 @@ void changeScreen(const unsigned int current) {
         display_string(0, "\tbuy lottery!");
         char str1[] = "\tNo:";
         char str2[10];
-        toString(str2, input);
+        turnToString(str2, input);
         strcat(str1, str2);
         display_string(1, str1);
-        display_string(2, "\t Select Num, btn23");
-        display_string(3, "\t Confirm, btn1");
+        display_string(2, "\tSelect Num, btn23");
+        display_string(3, "\tConfirm, btn1");
     } else if (current == GuessBig) {
-        display_string(0, "\t Unfortunately");
-        display_string(1, "\t You missed");
-        display_string(2, "\t costMoney(1)");
-        display_string(3, "\t Not even close");
+        display_string(0, "\tUnfortunately");
+        display_string(1, "\tYou missed");
+        display_string(2, "\tcostMoney(1)");
+        display_string(3, "\tNot even close");
     } else if (current == GuessNearBig) {
-        display_string(0, "\t Lotto Consolation");
-        display_string(1, "\t Prizes");
-        display_string(2, "\t ++Money(1)");
-        display_string(3, "\t Not bad.");
+        display_string(0, "\tLotto Consolation");
+        display_string(1, "\tPrizes");
+        display_string(2, "\t++Money(1)");
+        display_string(3, "\tNot bad.");
     } else if (current == GuessSmall) {
-        display_string(0, "\t unfortunately");
-        display_string(1, "\t you missed");
-        display_string(2, "\t costMoney(1)");
-        display_string(3, "\t close");
+        display_string(0, "\tunfortunately");
+        display_string(1, "\tyou missed");
+        display_string(2, "\tcostMoney(1)");
+        display_string(3, "\tclose");
     } else if (current == GuessNearSmall) {
-        display_string(0, "\t unfortunately");
-        display_string(1, "\t Input is:");
-        display_string(2, "\t Ans is larger ");
-        display_string(3, "\t Almost，Almost.");
+        display_string(0, "\tunfortunately");
+        display_string(1, "\tInput is:");
+        display_string(2, "\tAns is larger ");
+        display_string(3, "\tAlmost，Almost.");
     } else if (current == Win) {
-        display_string(0, "\t Jackpot!");
-        display_string(1, "\t congratulation!");
-        display_string(2, "\t You Win");
-        display_string(3, "\t Play again?");
+		allLED();
+		display_image(96, icon);
+        display_string(0, "\tJackpot!");
+        display_string(1, "\tCongratulation!");
+        display_string(2, "\tYou Win");
+        display_string(3, "\tPlay again?");
     } else if (current == TimeLimit) {
-        display_string(0, "\t Sorry.");
-        display_string(1, "\t Time Limit exceeded");
-        display_string(2, "\t You Lose");
-        display_string(3, "\t Play again?");
+        display_string(0, "\tSorry.");
+        display_string(1, "\tTime Limit exceeded");
+        display_string(2, "\tYou Lose");
+        display_string(3, "\tPlay again?");
     } else if (current == AttemptsMax) {
-        display_string(0, "\t GG");
-        display_string(1, "\t Die of hunger");
-        display_string(2, "\t You Lose");
-        display_string(3, "\t Play again?");
+		display_image(96, icon);
+        display_string(0, "\tBankrupt");
+        display_string(1, "\tDie of hunger");
+        display_string(2, "\tYou Lose");
+        display_string(3, "\tPlay again?");
     } else if (current == EventA1) {
-        display_string(0, "\t Random event");
-        display_string(1, "\t Store");
-        display_string(2, "\t 1 Fraud(3)");
-        display_string(3, "\t 2 robbery(4)");
+        display_string(0, "\tRandom event");
+        display_string(1, "\tStore");
+        display_string(2, "\t1 Fraud(3)");
+        display_string(3, "\t2 robbery(4)");
     } else if (current == EventA2) {
-        display_string(0, "\t Random event");
-        display_string(1, "\t Bank-");
-        display_string(2, "\t 1 salary(2)");
-        display_string(3, "\t 2 robbery(N) ");
+        display_string(0, "\tRandom event");
+        display_string(1, "\tBank-");
+        display_string(2, "\t1 salary(2)");
+        display_string(3, "\t2 robbery(N) ");
     } else if (current == EventA3) {
-        display_string(0, "\t Arrested");
-        display_string(1, "\t Prison");
-        display_string(2, "\t You Lose");
-        display_string(3, "\t Play again?");
+        display_string(0, "\tArrested");
+        display_string(1, "\tPrison");
+        display_string(2, "\tYou Lose");
+        display_string(3, "\tPlay again?");
     } else if (current == Rich) {
-        display_string(0, "\t Congratulation");
-        display_string(1, "\t You are rich");
-        display_string(2, "\t You Win");
-        display_string(3, "\t Play Again?");
+		allLED();
+        display_string(0, "\tCongratulation");
+        display_string(1, "\tYou are rich");
+        display_string(2, "\tYou Win");
+        display_string(3, "\tPlay Again?");
     } else if (current == Work1) {
-        display_string(0, "\t Working.");
-        display_string(1, "\t Sitework-");
-        display_string(2, "\t 1 workHard");
-        display_string(3, "\t 2 pretend");
+        display_string(0, "\tWorking.");
+        display_string(1, "\tSitework-");
+        display_string(2, "\t1 workHard");
+        display_string(3, "\t2 pretend");
     } else if (current == Work2) {
         display_string(0, "\tuGetMoney");
         display_string(1, "\t++Money(2)");
         display_string(2, "\t1 buy lottery");
         display_string(3, "\t2 banktoHome");
     } else if (current == Work3) {
-        display_string(0, "\t Work so much");
-        display_string(1, "\t You died");
-        display_string(2, "\t You Lose");
-        display_string(3, "\t Play again?");
+        display_string(0, "\tWork so much");
+        display_string(1, "\tYou died");
+        display_string(2, "\tYou Lose");
+        display_string(3, "\tPlay again?");
     } else if (current == Promotion) {
-        display_string(0, "\t Congratulation");
-        display_string(1, "\t You get promoted");
-        display_string(2, "\t You Win");
-        display_string(3, "\t Play Again?");
+		allLED();
+        display_string(0, "\tCongratulation");
+        display_string(1, "\tYou get promoted");
+        display_string(2, "\tYou Win");
+        display_string(3, "\tPlay Again?");
     }
     display_update();
 }
 
-void usebtns(const char current, int * pastButton, int * arr, int firstTime) {
+void checkSwt(void){
+	int swts = getsw();
+	if(swts&1){
+		checkReset = 1;
+	}
+	return;
+}
+
+//Returns 1 if the button was pressed last cycle but not this
+//used in useButtons most of the time
+char checkButton(int buttonNumber, int buttons, int * pastButton){
+    int p = power(2,buttonNumber - 1);
+    if( (p&*pastButton) && ((buttons&p) == 0) )                                                                                                                                                                                                                //if(    (((temp & ~(buttons)) & (pastButton & temp)) == temp)                    && pastButton)
+        return 1;
+    return 0;
+}
+
+void useButtons(const char current, int * pastButton, int firstTime) {
+	checkSwt();
     int btns = getbtns();
     if (current == Introduction) {
         if (checkButton(1, btns, pastButton)) {
-            arr[update] = GuessInit;
+            checkUpdate = GuessInit;
         }
     } else if (current == MainMenu) {
         if (checkButton(1, btns, pastButton)) {
             if (firstTime == 0) {
-                arr[update] = FirstTimeRun;
+                checkUpdate = FirstTimeRun;
                 firstTime = 1;
             } else {
-                arr[update] = Athome;
+                checkUpdate = Athome;
             }
         }
     } else if (current == Athome) {
-        if (money > 10) {
-            arr[update] = Rich;
+      if(money<0){
+		  if (checkButton(1, btns, pastButton)){checkUpdate = AttemptsMax;}
+            checkUpdate = AttemptsMax;
+      }
+      else if (money > 8) {
+		if (checkButton(1, btns, pastButton)){
+			checkUpdate = Rich;
+		}
         } else
         if (checkButton(1, btns, pastButton)) {
-            arr[update] = Work1;
-        } else
+            checkUpdate = Work1;
+        } else0
         if (checkButton(2, btns, pastButton)) {
-            arr[update] = GuessInit;
+            checkUpdate = GuessInit;
         } else
         if (checkButton(3, btns, pastButton)) {
-            health = health - 1;
+            health = health - 2;
             if (randomEvents = 0) {
-                arr[update] = EventA1;
+                checkUpdate = EventA1;
                 randomEvents++;
             } else {
-                arr[update] = EventA2;
+                checkUpdate = EventA2;
                 randomEvents = randomEvents - 1;
             }
         }
     } else if (current == EventA1) {
         if (checkButton(1, btns, pastButton)) {
             if (police <= 2) {
-                arr[update] = Work2;
+                checkUpdate = Work2;
                 police = police + 2;
                 money = money + 3;
 				addLED();
@@ -343,11 +376,11 @@ void usebtns(const char current, int * pastButton, int * arr, int firstTime) {
 					PORTE = 0xff;
                 }
             } else {
-                arr[update] = EventA3;
+                checkUpdate = EventA3;
             }
         } else if (checkButton(2, btns, pastButton)) {
             if (police <= 2) {
-                arr[update] = Work2;
+                checkUpdate = Work2;
                 police = police + 3;
                 money = money + 4;
 				addLED();
@@ -360,14 +393,19 @@ void usebtns(const char current, int * pastButton, int * arr, int firstTime) {
                 }
                 knif++;
             } else {
-                arr[update] = EventA3;
+                checkUpdate = EventA3;
             }
         }
     } else if (current == EventA2) {
         if (checkButton(1, btns, pastButton)) {
-            arr[update] = Work2;
+            checkUpdate = Work2;
             money = money + salary;
 			int temp = salary;
+			        if (money > 8) {
+                    money = 8;
+					allLED();
+					checkUpdate = Rich;
+                }
 			while(temp>0){
 				addLED();
 				temp--;
@@ -375,75 +413,81 @@ void usebtns(const char current, int * pastButton, int * arr, int firstTime) {
             salary = 0;
         } else if (checkButton(2, btns, pastButton)) {
             if (police <= 2 && knif != 0) {
-                arr[update] = Rich;
-                money = 10;
-				PORTE = 0xff;
+                checkUpdate = Rich;
+                money = 8;
+				    PORTE = 0xff;
             } else {
-                arr[update] = EventA3;
+                checkUpdate = EventA3;
             }
         }
     } else if (current == Work1) {
         if (checkButton(1, btns, pastButton)) {
             health++;
-            if (health > 5) {
-                arr[update] = Work3;
+            if (health > 3) {
+                checkUpdate = Work3;
             } else {
                 salary = salary + 2;
                 police = police - 1;
-                arr[update] = Work2;
+                checkUpdate = Work2;
             }
         } else if (checkButton(2, btns, pastButton)) {
             promo++;
             health = health - 1;
             salary = salary + 2;
             if (promo > 3) {
-                arr[update] = Promotion;
+                checkUpdate = Promotion;
             } else {
-                arr[update] = Work2;
+                checkUpdate = Work2;
             }
         }
     } else if (current == Work2) {
         if (checkButton(1, btns, pastButton)) {
-            arr[update] = GuessInit;
+            checkUpdate = GuessInit;
         } else if (checkButton(2, btns, pastButton)) {
-            arr[update] = Athome;
+            checkUpdate = Athome;
         }
     } else if (current == FirstTimeRun) {
         if (checkButton(1, btns, pastButton)) {
-            arr[update] = Introduction;
+            checkUpdate = Introduction;
         }
     } else if (current == GuessBig || current == GuessNearBig || current == GuessSmall || current == GuessNearSmall) {
         if (checkButton(1, btns, pastButton)) {
-            arr[update] = GuessInit;
+          if(money<0){
+          checkUpdate = AttemptsMax;
+          }else{checkUpdate = GuessInit;}
+            
+        }else if (checkButton(2, btns, pastButton)) {
+          if(money<0){
+          checkUpdate = AttemptsMax;
+          }else{checkUpdate = Athome;}
         }
     } else if (current == GuessInit) {
 		
         if (money < 0) {
-            arr[update] = AttemptsMax;
+          if (checkButton(1, btns, pastButton)){checkUpdate = AttemptsMax;}
+          
+            checkUpdate = AttemptsMax;
         } else if (checkButton(1, btns, pastButton)) {
-            arr[check] = 1;
-			money = money - 2;
-			minusLED();
-			minusLED();
+            checkValue = 1;
+			      money = money - 1;
+			      minusLED();
         } else if (checkButton(4, btns, pastButton)) {
             input += 100;
-            arr[update] = GuessInit;
+            checkUpdate = GuessInit;
         } else if (checkButton(3, btns, pastButton)) {
             input += 10;
-            arr[update] = GuessInit;
+            checkUpdate = GuessInit;
         } else if (checkButton(2, btns, pastButton)) {
             input += 1;
-            arr[update] = GuessInit;
+            checkUpdate = GuessInit;
         }
         if (input > 1000) {
             input = 0;
         }
     } else if (current == Rich || current == Win || current == TimeLimit || current == AttemptsMax || current == EventA3 || current == Work3 || current == Promotion) {
-
-		if (checkButton(1, btns, pastButton)) {
-            arr[reset] = 1;
+        if (checkButton(1, btns, pastButton)) {
+            checkReset = 1;
         }
-
         money = 1;
 		PORTE = 0x1;
 		led = 0;
@@ -457,20 +501,16 @@ void usebtns(const char current, int * pastButton, int * arr, int firstTime) {
     * pastButton = btns;
 }
 
+
 void guessgod(void) {
 	//volatile int * porte = (volatile int *) 0xbf886110;
     PORTE = 0x1;
 	TRISECLR = 0xFF;
     char current = 0;
     int pastButton = 0;
-    int arr[8];
-    int arrLength = sizeof(arr) / sizeof(arr[0]);
     int i;
     times = 0;
     attempts = 0;
-    for (i = 0; i < arrLength; i++) {
-        arr[i] = 0;
-    }
     i = 0;
     int difference;
     int bigger;
@@ -478,54 +518,58 @@ void guessgod(void) {
     int firstTime;
     int timeMax = 10000;
     int attemptsMax = 10;
+
     while (1) {
-        if (arr[check] == 1) {
+        if (checkValue == 1) {
             if (input == rightAnswer) {
-                arr[update] = Win;
+                checkUpdate = Win;
             } else if (times >= timeMax) {
-                arr[update] = TimeLimit;
+                checkUpdate = TimeLimit;
             } else if (attempts >= attemptsMax) {
-                arr[update] = AttemptsMax;
+                checkUpdate = AttemptsMax;
             } else {
                 difference = rightAnswer - input;
+                    if(money<0){
+            checkUpdate = AttemptsMax;
+            }else      
                 if (difference < 0) {
-                    arr[update] = GuessBig;
+                    checkUpdate = GuessBig;
 					//addLED();
                 }
-                /*else if((abs(difference)<50 )&&(bigger ==1)){
-                                  arr[update] = GuessNearBig;}}*/
+
                 else if (difference > 0) {
-                    arr[update] = GuessSmall;
+                    checkUpdate = GuessSmall;
 					//addLED();
                 }
-                /*
-				  else if((abs(difference)<50 )&&(bigger !=1)){
-				      arr[update] = GuessNearSmall;
-				}*/
+
             }
         }
-        if (arr[reset]) {
+        if (checkReset) {
             times = 0;
             money = 1;
 			PORTE = 0x1;
-			led = 0;
-            for (i = 0; i < arrLength; i++) {
-                arr[i] = 0;
-            }
-            i = 0;
+			led = 1;
+            checkValue = 0;
+            checkUpdate = 0; 
+            checkReset = -1;
+          	salary = 0;
             bigger = 0;
             input = 1;
+			knif = 0;
+			health = 0;
+			randomEvents = 0;
+			promo = 0;
+			police = 0;
             rightAnswer = getRandom((rightAnswer + 1));
         }
-        if (arr[update] != -1) {
-            current = arr[update];
+        if (checkUpdate != -1) {
+            current = checkUpdate;
         }
         changeScreen(current);
-        for (i = 0; i < arrLength; i++) {
-            arr[i] = 0;
-        }
-        i = 0;
-        arr[update] = -1;
-        usebtns(current, & pastButton, arr, firstTime);
+        checkValue = 0;
+        checkUpdate = 0;
+        checkReset = 0;
+        checkUpdate = -1;
+        useButtons(current, & pastButton, firstTime);
     }
 }
