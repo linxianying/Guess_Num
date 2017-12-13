@@ -8,7 +8,7 @@ signed int current;
  
 int main ()
 {
-    int gameData[Screen][State] = {{1, 1, 1, 0,0,0,0, 0,0},/*command,dir1,dir2,btn1234,swt12, *7
+    int gameData[Screen][State] = {{1, 1, 1, 0,0,0,0, 0,0},//command,dir1,dir2,btn1234,swt12, 
                               {1, 2, 2, 0,0,0,0, 0,0},
                               {1, 3, 3, 0,0,0,0, 0,0},
                               {1, 5, 6, 0,0,0,0, 0,0}};
