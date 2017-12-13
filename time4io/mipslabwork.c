@@ -62,78 +62,121 @@ void labinit(void){
     return;
 }
 
+// return a^b
+int power(int a,int b) { 
+	int n=1; 
+	int x=0;
+	while(x<b) {
+		n=n*a; 
+		x++;
+	}
+	return n; 
+} 
 
-void guessgod(void) {
-	//volatile int * porte = (volatile int *) 0xbf886110;
-    PORTE = 0x1;
-	TRISECLR = 0xFF;
-    char current = 0;
-    int pastButton = 0;
-    int arr[8];
-    int arrLength = sizeof(arr) / sizeof(arr[0]);
-    int i;
-    times = 0;
-    attempts = 0;
-    for (i = 0; i < arrLength; i++) {
-        arr[i] = 0;
+
+/**
+ * Returns 1 if the button was pressed last cycle but is not pressed
+ * this cycle. Ergo the button was released
+ */
+char checkButton(int buttonNr, int buttons, int * pastButton){
+    int temp = power(2,buttonNr - 1);
+
+    if( (temp & *pastButton) && ((buttons & temp) == 0) )                                                                                                                                                                                                                //if(    (((temp & ~(buttons)) & (pastButton & temp)) == temp)                    && pastButton)
+        return 1;
+    return 0;
+}
+
+void allLED(void){
+	PORTE = 0x11111;
+}
+
+void addLED(void){
+	if(led == 0){
+		PORTE = 0x1;
+	}else if(led>8){
+		led = 0;
+		PORTE = 0x1;
+	}else if(led == 8){
+		PORTE = 0x0;
+	}else{
+		int loop = power(2,led);
+		while(loop>0){
+			PORTE += 1;
+			loop--;
+		}
+		
+	}
+	led++;
+	return;
+}
+
+
+void minusLED(void){
+	if(led <= 0 || PORTE == 0x0){
+		PORTE = 0x0;
+	}else{
+		int loop = power(2,led-1);
+		while(loop>0){
+			PORTE -= 1;
+			loop--;
+		}
+	}
+	led--;
+	return;
+}
+
+
+void toString(char str[], int num) {
+    int i, rem, len = 0, n;
+
+    n = num;
+    while (n != 0) {
+        len++;
+        n /= 10;
     }
-    i = 0;
-    int difference;
-    int bigger;
-    rightAnswer = initialRandom;
-    int firstTime;
-    int timeMax = 10000;
-    int attemptsMax = 10;
-    while (1) {
-        if (arr[check] == 1) {
-            if (input == rightAnswer) {
-                arr[update] = Win;
-            } else if (times >= timeMax) {
-                arr[update] = TimeLimit;
-            } else if (attempts >= attemptsMax) {
-                arr[update] = AttemptsMax;
-            } else {
-                difference = rightAnswer - input;
-                if (difference < 0) {
-                    arr[update] = GuessBig;
-					//addLED();
-                }
-                /*else if((abs(difference)<50 )&&(bigger ==1)){
-                                  arr[update] = GuessNearBig;}}*/
-                else if (difference > 0) {
-                    arr[update] = GuessSmall;
-					//addLED();
-                }
-                /*
-				  else if((abs(difference)<50 )&&(bigger !=1)){
-				      arr[update] = GuessNearSmall;
-				}*/
+    for (i = 0; i < len; i++) {
+        rem = num % 10;
+        num = num / 10;
+        str[len - (i + 1)] = rem + '0';
+    }
+    str[len] = '\0';
+}
+
+int findPrime(int num){
+	int i,j,temp,count=0;
+	if(num <= 1)
+		return 2;
+	if(num >= 1000)
+		num = num -999;
+    for(i=2;i<=1000;i++){
+        temp=0;
+        for(j=2;j<=100;j++){
+            if(i%j==0){
+                temp=1;
+                break;
             }
         }
-        if (arr[reset]) {
-            times = 0;
-            money = 1;
-			PORTE = 0x1;
-			led = 0;
-            for (i = 0; i < arrLength; i++) {
-                arr[i] = 0;
-            }
-            i = 0;
-            bigger = 0;
-            input = 1;
-            rightAnswer = getRandom((rightAnswer + 1));
+        if(temp==0){
+            count++;
         }
-        if (arr[update] != -1) {
-            current = arr[update];
+        if(count==num){
+            return i;
         }
-        changeScreen(current);
-        for (i = 0; i < arrLength; i++) {
-            arr[i] = 0;
-        }
-        i = 0;
-        arr[update] = -1;
-        usebtns(current, & pastButton, arr, firstTime);
     }
+	return num%99+88;
+}
+
+int getRandom(int num){
+	int seed = findPrime(num)%73*35%66 + 51;
+	seed++;
+	int random = seed%500 + seed%299 + seed%199 + 3;
+	return random;
+}
+
+
+
+void user_isr(void) {
+    return;
 }
 
 
@@ -250,7 +293,6 @@ void changeScreen(const unsigned int current) {
     }
     display_update();
 }
-
 
 void usebtns(const char current, int * pastButton, int * arr, int firstTime) {
     int btns = getbtns();
@@ -397,9 +439,11 @@ void usebtns(const char current, int * pastButton, int * arr, int firstTime) {
             input = 0;
         }
     } else if (current == Rich || current == Win || current == TimeLimit || current == AttemptsMax || current == EventA3 || current == Work3 || current == Promotion) {
-        if (checkButton(1, btns, pastButton)) {
+
+		if (checkButton(1, btns, pastButton)) {
             arr[reset] = 1;
         }
+
         money = 1;
 		PORTE = 0x1;
 		led = 0;
@@ -413,116 +457,75 @@ void usebtns(const char current, int * pastButton, int * arr, int firstTime) {
     * pastButton = btns;
 }
 
-
-/**
- * Returns 1 if the button was pressed last cycle but is not pressed
- * this cycle. Ergo the button was released
- */
-char checkButton(int buttonNr, int buttons, int * pastButton){
-    int temp = power(2,buttonNr - 1);
-
-    if( (temp & *pastButton) && ((buttons & temp) == 0) )                                                                                                                                                                                                                //if(    (((temp & ~(buttons)) & (pastButton & temp)) == temp)                    && pastButton)
-        return 1;
-    return 0;
-}
-
-
-int power(int a,int b) { 
-	int n=1; 
-	int x=0;
-	while(x<b) {
-		n=n*a; 
-		x++;
-	}
-	return n; 
-} 
-
-
-void addLED(void){
-	if(led == 0){
-		PORTE = 0x1;
-	}else if(led>8){
-		led = 0;
-		PORTE = 0x1;
-	}else if(led == 8){
-		PORTE = 0x0;
-	}else{
-		int loop = power(2,led);
-		while(loop>0){
-			PORTE += 1;
-			loop--;
-		}
-		
-	}
-	led++;
-	return;
-}
-
-
-void minusLED(void){
-	if(led <= 0 || PORTE == 0x0){
-		PORTE = 0x0;
-	}else{
-		int loop = power(2,led-1);
-		while(loop>0){
-			PORTE -= 1;
-			loop--;
-		}
-	}
-	led--;
-	return;
-}
-
-
-void toString(char str[], int num) {
-    int i, rem, len = 0, n;
-
-    n = num;
-    while (n != 0) {
-        len++;
-        n /= 10;
+void guessgod(void) {
+	//volatile int * porte = (volatile int *) 0xbf886110;
+    PORTE = 0x1;
+	TRISECLR = 0xFF;
+    char current = 0;
+    int pastButton = 0;
+    int arr[8];
+    int arrLength = sizeof(arr) / sizeof(arr[0]);
+    int i;
+    times = 0;
+    attempts = 0;
+    for (i = 0; i < arrLength; i++) {
+        arr[i] = 0;
     }
-    for (i = 0; i < len; i++) {
-        rem = num % 10;
-        num = num / 10;
-        str[len - (i + 1)] = rem + '0';
-    }
-    str[len] = '\0';
-}
-
-
-int getRandom(int num){
-	int seed = findPrime(num)%73*35%66 + 51;
-	seed++;
-	int random = seed%500 + seed%299 + seed%199 + 3;
-	return random;
-}
-
-int findPrime(int num){
-	int i,j,temp,count=0;
-	if(num <= 1)
-		return 2;
-	if(num >= 1000)
-		num = num -999;
-    for(i=2;i<=1000;i++){
-        temp=0;
-        for(j=2;j<=100;j++){
-            if(i%j==0){
-                temp=1;
-                break;
+    i = 0;
+    int difference;
+    int bigger;
+    rightAnswer = initialRandom;
+    int firstTime;
+    int timeMax = 10000;
+    int attemptsMax = 10;
+    while (1) {
+        if (arr[check] == 1) {
+            if (input == rightAnswer) {
+                arr[update] = Win;
+            } else if (times >= timeMax) {
+                arr[update] = TimeLimit;
+            } else if (attempts >= attemptsMax) {
+                arr[update] = AttemptsMax;
+            } else {
+                difference = rightAnswer - input;
+                if (difference < 0) {
+                    arr[update] = GuessBig;
+					//addLED();
+                }
+                /*else if((abs(difference)<50 )&&(bigger ==1)){
+                                  arr[update] = GuessNearBig;}}*/
+                else if (difference > 0) {
+                    arr[update] = GuessSmall;
+					//addLED();
+                }
+                /*
+				  else if((abs(difference)<50 )&&(bigger !=1)){
+				      arr[update] = GuessNearSmall;
+				}*/
             }
         }
-        if(temp==0){
-            count++;
+        if (arr[reset]) {
+            times = 0;
+            money = 1;
+			PORTE = 0x1;
+			led = 0;
+            for (i = 0; i < arrLength; i++) {
+                arr[i] = 0;
+            }
+            i = 0;
+            bigger = 0;
+            input = 1;
+            rightAnswer = getRandom((rightAnswer + 1));
         }
-        if(count==num){
-            return i;
+        if (arr[update] != -1) {
+            current = arr[update];
         }
+        changeScreen(current);
+        for (i = 0; i < arrLength; i++) {
+            arr[i] = 0;
+        }
+        i = 0;
+        arr[update] = -1;
+        usebtns(current, & pastButton, arr, firstTime);
     }
-	return num%99+88;
 }
-
-void user_isr(void) {
-    return;
-}
-
