@@ -24,14 +24,25 @@ int mytime = 0x5957;
 int timeoutcount = 0;
 #define Screen 4
 #define State 9
-#define NUMBER_OF_STRINGS 20 
+#define NUMBER_OF_STRINGS 20
+#define Enable 1
+#define Disable 0
  
-signed int current; 
+
 
     int gameData[Screen][State] = {{1, 1, 1, 0,0,0,0, 0,0},//command,dir1,dir2,btn1234,swt12, 
 								  {1, 2, 2, 0,0,0,0, 0,0},
 								  {1, 3, 3, 0,0,0,0, 0,0},
 								  {1, 5, 6, 0,0,0,0, 0,0}};
+
+       int i, j;
+    char a[ROW][COL] = {"string1", "string2", "string3", "string4", "string5"};
+    char *b[ROW];
+
+    char (*ptr1)[COL] = a;
+    printf("Contents of first array \n");
+    for (i=0; i<ROW; i++)
+        printf("%s \n", *ptr1++);
     
     // command  = 0 = swt1 = enable, command = 0 =reset
     // command1 = 1 = anybtn pressed, update current screen to dir 1
@@ -75,22 +86,20 @@ void resetData(int (*gameData[State]))
 
 void useButtons(int * pastButton) {
     int btns = getbtns();
-	if (btns&1){
-		gameData[current][4] = 1;
-	}else 
-	if(btns&2){
-		gameData[current][5] = 1;
-	}else 
-	if(btns&4){
-		gameData[current][6] = 1;
-	}else
-	if(btns&4){
-		gameData[current][7] = 1;} 
+	
+	for (i = 1; i < 5; i++)
+    {
+        if(checkButton(i, btns, pastButton)){
+	 	
+	}
+
+    }
+		
 
  * pastButton = btns;
 }
 
-void changeScreen() { 
+void changeScreen(int * current) { 
 	int i;
 	for ( i = 0; i < 3; i++){
 		display_string(i,displayList[4*current][i]);
@@ -98,23 +107,27 @@ void changeScreen() {
 } 
  
 void game(void) {
-    current = 0;
+   int current = 0;
+   int *currentP;        /* pointer variable declaration */
+
+   currentP = &current;
+		
     int pastButton = 0;
-    while (1) {
-        if(IFS(0) & 0x100){
+    while (True) {
+    /*    if(IFS(0) & 0x100){
 		  IFS(0) = 0;	//Reset all event flags (crude!)
 		  // without this, the speed will become extremely fast
 		  timeoutcount++;
-		}
+		}*/
         if (dataArray[current][1] != 0) {
            current = ;
         }
 		
-		if(timeoutcount == 10){
-		  changeScreen(current);
+	if(timeoutcount == 10){
+          changeScreen(current);
           resetData(current);
           useButtons(& pastButton);
-		  timeoutcount = 0; // reset timeout value to 0
+		/*  timeoutcount = 0; // reset timeout value to 0*/
 		}
     }
 }
